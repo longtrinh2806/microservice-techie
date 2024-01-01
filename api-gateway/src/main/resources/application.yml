@@ -1,0 +1,49 @@
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
+spring:
+  application:
+    name: api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8181/realms/spring-boot-microservices-realm
+  cloud:
+    gateway:
+      routes[0]:
+        id: product-service #Product Service Route
+        uri: lb://product-service
+        predicates[0]: Path=/api/product
+      routes[1]:
+        id: order-service #Order Service Route
+        uri: lb://order-service
+        predicates[0]: Path=/api/order
+      routes[2]:
+        id: discovery-server #Discovery Server Route
+        uri: http://localhost:8761
+        predicates[0]: Path=/eureka/web
+        filters[0]: SetPath=/
+      routes[3]:
+        id: discovery-server-static #Discovery Server Static Resources Route
+        uri: http://localhost:8761
+        predicates[0]: Path=/eureka/**
+
+logging:
+  level:
+    root: info
+    org:
+      springframework:
+        cloud:
+          gateway:
+            route:
+              org.springframework.cloud.gateway.route.RouteDefinitionLocator: info
+          trace: trace
+# Actuator Prometheus Endpoint
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+

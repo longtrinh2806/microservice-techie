@@ -1,0 +1,67 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/order_service
+    username: springstudent
+    password: springstudent
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+  application:
+    name: order-service
+  kafka:
+    bootstrap-servers: localhost:9092
+    template:
+      default-topic: notificationTopic
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring:
+          json:
+            type:
+              mapping: event:com.trinhkimlong.orderservice.event.OrderPlacedEvent
+server:
+  port: 8081
+
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+# Resilinece4j Properties
+resilience4j:
+  timelimiter: # Resilinece4j Timeout Properties
+    instances:
+      inventory:
+        timeout-duration: 3s # thời gian tối đa mà một phương thức có thể thực thi trước khi bị hủy bỏ
+
+  retry:  # Resilinece4j Retry Properties
+    instances:  # nếu phương thức placeOrder() gặp lỗi, Resilience4j sẽ thực hiện thử lại phương thức theo số lần
+      inventory:  # và khoảng thời gian được xác định. Nếu sau số lần thử lại tối đa mà phương thức vẫn không thành công, Resilience4j sẽ kích hoạt các hành động khác (ví dụ: fallback method).
+        max-attempts: 3 # số lần thử lại tối đa khi một phương thức gặp lỗi
+        wait-duration: 5s # khoảng thời gian chờ giữa các lần thử lại
+  circuitbreaker:
+    instances:
+      inventory:
+        register-health-indicator: true # Xác định xem một health indicator (bộ chỉ số sức khỏe) sẽ được đăng ký hay không.
+        event-consumer-buffer-size: 10 # kích thước của bộ đệm sự kiện tiêu thụ. Bộ đệm này được sử dụng để lưu trữ các sự kiện CircuitBreaker như triển khai, hủy bỏ, mở và đóng.
+        sliding-window-type: COUNT_BASED # Xác định loại cửa sổ trượt được sử dụng để tính toán tỷ lệ lỗi. Trong cấu hình của bạn, giá trị là "COUNT_BASED", cho biết rằng cửa sổ trượt dựa trên số lượng lời gọi.
+        sliding-window-size: 5 # xác định số lượng lời gọi gần nhất được sử dụng để tính toán tỷ lệ lỗi
+        failure-rate-threshold: 50 #ngưỡng tỷ lệ lỗi cho phép trước khi CircuitBreaker mở. Nếu tỷ lệ lỗi vượt quá ngưỡng này, CircuitBreaker sẽ chuyển sang trạng thái mở và các lời gọi tiếp theo sẽ không được thực hiện. Trong cấu hình của bạn, giá trị là 50, cho biết rằng nếu tỷ lệ lỗi vượt quá 50%, CircuitBreaker sẽ mở.
+        wait-duration-in-open-state: 5s #khoảng thời gian mà CircuitBreaker sẽ ở trạng thái mở trước khi chuyển sang trạng thái bán mở.
+        permitted-number-of-calls-in-half-open-state: 3 #Xác định số lượng lời gọi được phép trong trạng thái bán mở.
+        automatic-transition-from-open-to-half-open-enabled: true

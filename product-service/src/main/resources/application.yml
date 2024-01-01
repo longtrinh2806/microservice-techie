@@ -1,0 +1,20 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://trinhkimlong811:long0865448203@microservice-project.jcuwdv7.mongodb.net/?retryWrites=true&w=majority
+      database: microservice-project
+  application:
+    name: product-service
+
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
+server:
+  port: 0
+# Actuator Prometheus Endpoint
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus

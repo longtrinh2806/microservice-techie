@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventory_service
+    username: postgres
+    password: long0865448203
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+  application:
+    name: inventory-service
+
+server:
+  port: 8082
+
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
+# Actuator Prometheus Endpoint
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
